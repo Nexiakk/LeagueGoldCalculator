@@ -2,97 +2,99 @@
 
 <head>
     <link rel="stylesheet" type="text/css" href="main.css">
-    <title>LoL farming calculator</title>
+    <title>LoL Gold Calculator</title>
+    <link rel="icon" href="yan.png" type="image/png">
 </head>
 
 <body>
 
-<table>
-    <div id='general_info_label' style="color: #00bb00;">Game version is loading...</div>
+    <table>
+        <div id='general_info_label' style="color: #00bb00;">Game version is loading...</div>
 
-    <tr id="main_container">
-        <td id="table_container">
-            <div class="info_container">
-                Map: 
-                <select id="map_selector">
-                    <option value="rift">Summoner's Rift</option>
-                </select>
+        <tr id="main_container">
+            <td id="table_container">
+                <div class="info_container">
 
-                <br>
+                    Lasthit quality:
+                    <input id='lasthit_quality_selector' onchange='build.update_completely_available(); render_all();'
+                        size=1 value='100'>%
 
-                Line: 
-                <select id="line_selector" onchange="build.update_completely_available(); render_all();">
-                    <option value="top">Top</option>
-                    <option value="mid">Mid</option>
-                    <option value="bot">Bottom</option>
-                </select>
+                    <br>
 
-                <br>
+                    Set time to
+                    <input id='stattable_min' onchange='stats_table.update_time(); render_all();' size=1 value='5'>min
+                    <input id='stattable_sec' onchange='stats_table.update_time(); render_all();' size=1 value='00'>sec
 
-                <div style="display: none;">
-                Champion: 
-                <select id="champion_selector" onchange="build.update_completely_available(); render_all();">
-                    <option value="none">Not specific</option>
-                    <option value="tf">Twisted Fate</option>
-                </select>
+                    <br><br>
 
-                <br>
+                    Time from start: <span id="stattable_time_label">---</span>
+                    <br>
+                    <span style="font-size: 13px;">(Every wave is calculated to be cleared 5 SECONDS after meet at
+                        middle the e.g. 1:35)</span>
                 </div>
 
-                Lasthit quality: 
-                <input id='lasthit_quality_selector' onchange='build.update_completely_available(); render_all();' size=1 value='100'>% 
+                <table id="stattable">
+                </table>
 
-                <br>
-
-                Time from start: <span id="stattable_time_label">---</span>
-                
                 <br><br>
 
-                Set time to 
-                <input id='stattable_min' onchange='stats_table.update_time(); render_all();' size=1 value='20'>min 
-                <input id='stattable_sec' onchange='stats_table.update_time(); render_all();' size=1 value='00'>sec
-            </div>    
+                <span style="font-size: 20px; font-weight: 700;"> Wave timers:</span><br>
+                1:30<br>
+                2:00<br>
+                2:30 - cannon<br>
+                3:00<br>
+                3:30<br>
+                4:00 - cannon<br>
+                4:30<br>
+                5:00<br>
+                5:30 - cannon<br>
+                6:00<br>
+                6:30<br>
+                7:00 - cannon<br>
+                7:30<br>
+                8:00<br>
+                8:30 - cannon<br>
+                9:00<br>
+                9:30<br>
+                10:00 - cannon
+            </td>
 
-            <table id="stattable">
-            </table>
-        </td>
-        
-        <td id="build_container">
-            <div class="info_container">
-                Items selected: <span id="build_items_count_label">---</span> / 6
+            <td id="build_container">
+                <div class="info_container">
+                    Items selected: <span id="build_items_count_label">---</span> / 6
 
-                <br>
+                    <br>
 
-                Total gold cost: <span id="build_items_cost_label">---</span>
+                    Total gold cost: <span id="build_items_cost_label">---</span>
 
-                <br>
+                    <br>
 
-                Completely available at: <span id="build_items_time_label">---</span>
-            </div>
+                    Completely available at: <span id="build_items_time_label">---</span>
+                </div>
 
-            <div id="build_items_container" >Loading items dataset...</div>
-        </td>
-        
-        <td id="shop_container">
-            <div class="info_container">
-                Sort by: 
-                
-                <select id="sort_selector" onchange="itemset.render();">
-                    <option value="cost">Cost</option>
-                    <option value="name">Name</option>
-                </select>
+                <div id="build_items_container">Loading items dataset...</div>
+            </td>
 
-                <br>
+            <td id="shop_container">
+                <div class="info_container">
+                    Sort by:
 
-                Filter by item name: <input id="filter_selector" oninput="itemset.render();" size=25>
-            </div>
+                    <select id="sort_selector" onchange="itemset.render();">
+                        <option value="cost">Cost</option>
+                        <option value="name">Name</option>
+                    </select>
 
-            <div id="shop_items_container" >Loading items dataset...</div>
-        </td>
-    </tr>
-</table>
+                    <br>
 
-<script type="text/javascript" src="main.js"></script>
+                    Filter by item name: <input id="filter_selector" oninput="itemset.render();" size=25>
+                </div>
+
+                <div id="shop_items_container">Loading items dataset...</div>
+            </td>
+        </tr>
+    </table>
+
+    <script type="text/javascript" src="main.js"></script>
 
 </body>
 
