@@ -1,4 +1,3 @@
-
 function gold_span(value, precision=0) {
     value = (+value.toFixed(precision));
 
@@ -157,11 +156,9 @@ class LeagueBuild {
     }
 
     update_completely_available() {
-        var champion = document.getElementById('champion_selector').value;
-        var line = document.getElementById('line_selector').value;
         var lasthit_quality = get_lasthit_quality_value();
 
-        this.complete_build_model = new LeagueIncomeModel(MAX_TIME, this.total_cost, champion, lasthit_quality, line);
+        this.complete_build_model = new LeagueIncomeModel(MAX_TIME, this.total_cost, lasthit_quality);
     }
 
     push(item) {
@@ -217,24 +214,16 @@ class LeagueBuild {
 }
 
 class LeagueIncomeModel {
-    constructor (cap_time, cap_gold, champion, lasthit_quality, line) {
+    constructor (cap_time, cap_gold, lasthit_quality) {
         this.cap_time = cap_time;
         this.cap_gold = cap_gold;
-        this.champion = champion;
-        this.line = line;
         this.lasthit_quality = lasthit_quality;
         
         this.rift_passive_income_per_second = 20.4 / 10;
         this.rift_passive_income_start_time = 1*60 + 50;
 
-        // retired in patch 13.12
-        this.early_game_duration = 14*60;
-        this.early_game_midline_penalty_per_minion = 0; 
-        this.early_game_midline_lasthits = 0;
-
         this.current_time = 0;
         this.current_passive_income_per_second = 0;
-        this.starting_gold = 500;
 
         this.melee_lasthits = 0;
         this.caster_lasthits = 0;
@@ -247,11 +236,8 @@ class LeagueIncomeModel {
         this.melee_per_wave = 3;
         this.caster_per_wave = 3;
     
-        this.first_wave_timing = 1*60 + 5;
+        this.first_wave_timing = 1.5*60 + 5;
         this.wave_period = 30;
-
-        this.loaded_dice_average_bounty = 0;
-        if (this.champion == "tf") this.loaded_dice_average_bounty = 3.5;
 
         this.compute();
 
@@ -267,10 +253,8 @@ class LeagueIncomeModel {
     }
 
     get total_gold() {
-        return this.starting_gold +
-            this.passive_profit +
-            this.lane_minion_total_bounty + 
-            this.loaded_dice_total_bounty;
+        return this.passive_profit +
+            this.lane_minion_total_bounty;
     }
 
     get lane_minion_lasthits() {
@@ -293,20 +277,9 @@ class LeagueIncomeModel {
         return this.caster_lasthits * this.caster_bounty_per_one;
     }
 
-    get loaded_dice_total_bounty() {
-        return this.loaded_dice_average_bounty * this.lane_minion_lasthits;
-    }
-
-    get early_game_midline_total_penalty() {
-        return this.early_game_midline_lasthits * this.early_game_midline_penalty_per_minion;
-    }
-
     get total_gold() {
-        return this.starting_gold +
-            this.passive_profit +
-            this.lane_minion_total_bounty + 
-            this.loaded_dice_total_bounty +
-            this.early_game_midline_total_penalty;
+        return this.passive_profit +
+            this.lane_minion_total_bounty;
     }
 
     siege_minion_spawns_at(time) {
@@ -345,7 +318,7 @@ class LeagueIncomeModel {
     }
 
     compute() {
-        console.log(this.cap_time, this.cap_gold, this.champion, this.line);
+        console.log(this.cap_time, this.cap_gold);
     
         if (this.total_gold > this.cap_gold) return;
 
@@ -370,10 +343,6 @@ class LeagueIncomeModel {
                 this.siege_lasthits += 1 * this.lasthit_quality;
                 this.siege_total_bounty += this.siege_minion_gold_bounty_at(wave_time) * this.lasthit_quality;
             }
-   
-            if (this.line == "mid" && wave_time < this.early_game_duration) {
-                this.early_game_midline_lasthits = this.lane_minion_lasthits;
-            }
 
             if (this.total_gold >= this.cap_gold) return;
         }
@@ -383,7 +352,7 @@ class LeagueIncomeModel {
 
 class LeagueStatsTable {
     constructor () {
-        this.current_time = 20*60 + 0;
+        this.current_time = 5*60 + 0;
     }
 
     set_time(time) {
@@ -402,14 +371,6 @@ class LeagueStatsTable {
         if (Number.isNaN(sec)) sec = 0;
 
         this.set_time(min*60 + sec);
-    }
-
-    table_starting_gold(model) {
-        return "<tr>" +
-            "<td>Starting gold</td>" +
-            "<td></td>" +
-            "<td>" + gold_span(model.starting_gold) +"</td>" + 
-            "</tr>";
     }
 
     table_row_passive_income(model) {
@@ -463,22 +424,6 @@ class LeagueStatsTable {
             "</tr>";
     }
 
-    table_row_loaded_dice(model) {
-        return "<tr>" +
-            "<td>Loaded dice (passive)</td>" +
-            "<td>" + model.lane_minion_lasthits.toFixed(1) + " x " + gold_span(model.loaded_dice_average_bounty, 1)  + "</td>" +
-            "<td>" + gold_span(model.loaded_dice_total_bounty) +"</td>" + 
-            "</tr>";
-    }
-
-    table_row_early_game_midline_penalty(model) {
-        return "<tr>" +
-            "<td>Early game midline penalty</td>" +
-            "<td>" + model.early_game_midline_lasthits.toFixed(1) + " x " + gold_span(model.early_game_midline_penalty_per_minion, 0)  + "</td>" +
-            "<td>" + gold_span(model.early_game_midline_total_penalty) +"</td>" + 
-            "</tr>";
-    }
-
     table_row_sum(model) {
         return "<tr>" +
             "<td>Total</td>" +
@@ -499,10 +444,8 @@ class LeagueStatsTable {
         var table = document.getElementById('stattable');
         var time_label = document.getElementById('stattable_time_label');
 
-        var champion = document.getElementById('champion_selector').value;
-        var line = document.getElementById('line_selector').value;
         var lasthit_quality = get_lasthit_quality_value();
-        var model = new LeagueIncomeModel(this.current_time, MAX_GOLD, champion, lasthit_quality, line);
+        var model = new LeagueIncomeModel(this.current_time, MAX_GOLD, lasthit_quality);
 
         console.log(model);
 
@@ -512,7 +455,6 @@ class LeagueStatsTable {
 
         table.innerHTML += this.table_row_separator(model);
         
-        table.innerHTML += this.table_starting_gold(model);
         table.innerHTML += this.table_row_passive_income(model);
 
         table.innerHTML += this.table_row_separator(model);
@@ -525,13 +467,6 @@ class LeagueStatsTable {
     
         table.innerHTML += this.table_row_separator(model);
 
-        // retired in patch 13.12
-        //if (line == "mid") {table.innerHTML += this.table_row_early_game_midline_penalty(model);}
-        
-        if (champion == 'tf') {
-            table.innerHTML += this.table_row_loaded_dice(model);
-        }
-
         table.innerHTML += this.table_row_separator(model);
         
         table.innerHTML += this.table_row_sum(model);
@@ -542,8 +477,7 @@ class LeagueStatsTable {
     }
 }
 
-var LEAGUE_VERSION = "14.5.1";
-var LAST_UPDATED = "6 March 2023";
+var LEAGUE_VERSION = "14.6.1";
 var MAX_GOLD = 150 * 1000;
 var MAX_TIME = 240 * 60;
 var itemset = new LeagueItemSet();
@@ -579,6 +513,4 @@ fetch("https://ddragon.leagueoflegends.com/cdn/" + LEAGUE_VERSION + "/data/en_US
     });
 
 document.getElementById('general_info_label').innerHTML = 
-    "League of Legends solo lane farming calculator. " + 
-    "Last updated at <span style='color: #00ff00;'>" + LAST_UPDATED + "</span>. " + 
-    "Consistent with game version <span style='color: #00ff00;'>" + LEAGUE_VERSION + "</span>";
+    "Patch: <span style='color: #00ff00;'>" + LEAGUE_VERSION + "</span>";
